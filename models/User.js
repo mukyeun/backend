@@ -17,4 +17,9 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
+// 비밀번호 비교 메서드 추가
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
 module.exports = mongoose.model('User', userSchema);

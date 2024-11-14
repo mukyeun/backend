@@ -1,4 +1,6 @@
 const HealthInfo = require('../models/HealthInfo');
+const logger = require('../utils/logger');
+const { successResponse, errorResponse } = require('../utils/responseFormatter');
 
 // 건강 정보 생성
 exports.create = async (req, res) => {
@@ -8,12 +10,20 @@ exports.create = async (req, res) => {
       userId: req.body.userId
     });
     const savedInfo = await healthInfo.save();
-    res.status(201).json(savedInfo);
+    logger.info(`새로운 건강정보 기록: ${savedInfo._id}`);
+    
+    res.status(201).json(successResponse(
+      savedInfo,
+      '건강정보가 성공적으로 생성되었습니다',
+      201
+    ));
   } catch (error) {
-    res.status(400).json({ 
-      message: '건강 정보 저장 실패', 
-      error: error.message 
-    });
+    logger.error('건강정보 생성 실패:', error);
+    res.status(400).json(errorResponse(
+      '건강정보 생성에 실패했습니다',
+      400,
+      error.message
+    ));
   }
 };
 
@@ -24,12 +34,18 @@ exports.getAll = async (req, res) => {
     const query = userId ? { userId } : {};
     const healthInfos = await HealthInfo.find(query)
       .sort({ createdAt: -1 });
-    res.json(healthInfos);
+    
+    res.json(successResponse(
+      healthInfos,
+      '건강정보 목록을 성공적으로 조회했습니다'
+    ));
   } catch (error) {
-    res.status(500).json({ 
-      message: '건강 정보 조회 실패', 
-      error: error.message 
-    });
+    logger.error('건강정보 조회 실패:', error);
+    res.status(500).json(errorResponse(
+      '건강정보 조회에 실패했습니다',
+      500,
+      error.message
+    ));
   }
 };
 
@@ -40,15 +56,25 @@ exports.getById = async (req, res) => {
       _id: req.params.id,
       userId: req.query.userId
     });
+    
     if (!healthInfo) {
-      return res.status(404).json({ message: '건강 정보를 찾을 수 없습니다.' });
+      return res.status(404).json(errorResponse(
+        '건강정보를 찾을 수 없습니다',
+        404
+      ));
     }
-    res.json(healthInfo);
+    
+    res.json(successResponse(
+      healthInfo,
+      '건강정보를 성공적으로 조회했습니다'
+    ));
   } catch (error) {
-    res.status(500).json({ 
-      message: '건강 정보 조회 실패', 
-      error: error.message 
-    });
+    logger.error('건강정보 조회 실패:', error);
+    res.status(500).json(errorResponse(
+      '건강정보 조회에 실패했습니다',
+      500,
+      error.message
+    ));
   }
 };
 
@@ -84,12 +110,17 @@ exports.search = async (req, res) => {
     const healthInfos = await HealthInfo.find(query)
       .sort({ createdAt: -1 });
       
-    res.json(healthInfos);
+    res.json(successResponse(
+      healthInfos,
+      '건강정보 검색을 성공적으로 완료했습니다'
+    ));
   } catch (error) {
-    res.status(500).json({ 
-      message: '건강 정보 검색 실패', 
-      error: error.message 
-    });
+    logger.error('건강정보 검색 실패:', error);
+    res.status(500).json(errorResponse(
+      '건강정보 검색에 실패했습니다',
+      500,
+      error.message
+    ));
   }
 };
 
@@ -106,15 +137,24 @@ exports.update = async (req, res) => {
     );
     
     if (!healthInfo) {
-      return res.status(404).json({ message: '건강 정보를 찾을 수 없습니다.' });
+      return res.status(404).json(errorResponse(
+        '건강정보를 찾을 수 없습니다',
+        404
+      ));
     }
     
-    res.json(healthInfo);
+    logger.info(`건강정보 수정: ${req.params.id}`);
+    res.json(successResponse(
+      healthInfo,
+      '건강정보가 성공적으로 수정되었습니다'
+    ));
   } catch (error) {
-    res.status(400).json({ 
-      message: '건강 정보 수정 실패', 
-      error: error.message 
-    });
+    logger.error('건강정보 수정 실패:', error);
+    res.status(400).json(errorResponse(
+      '건강정보 수정에 실패했습니다',
+      400,
+      error.message
+    ));
   }
 };
 
@@ -127,14 +167,23 @@ exports.delete = async (req, res) => {
     });
     
     if (!healthInfo) {
-      return res.status(404).json({ message: '건강 정보를 찾을 수 없습니다.' });
+      return res.status(404).json(errorResponse(
+        '건강정보를 찾을 수 없습니다',
+        404
+      ));
     }
     
-    res.json({ message: '건강 정보가 삭제되었습니다.' });
+    logger.info(`건강정보 삭제: ${req.params.id}`);
+    res.json(successResponse(
+      null,
+      '건강정보가 성공적으로 삭제되었습니다'
+    ));
   } catch (error) {
-    res.status(500).json({ 
-      message: '건강 정보 삭제 실패', 
-      error: error.message 
-    });
+    logger.error('건강정보 삭제 실패:', error);
+    res.status(500).json(errorResponse(
+      '건강정보 삭제에 실패했습니다',
+      500,
+      error.message
+    ));
   }
 };

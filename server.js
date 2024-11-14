@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpecs = require('./docs/swagger');
+const swaggerSpecs = require('./config/swagger');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 require('dotenv').config();
@@ -26,7 +26,13 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+  swaggerOptions: {
+    persistAuthorization: true,
+  },
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Health Info API Documentation"
+}));
 
 // Routes
 app.use('/api/users', userRoutes);
@@ -35,7 +41,10 @@ app.use('/api/symptoms', symptomRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Health Info API' });
+  res.json({ 
+    message: 'Welcome to Health Info API',
+    documentation: '/api-docs'
+  });
 });
 
 // Error handling middleware
