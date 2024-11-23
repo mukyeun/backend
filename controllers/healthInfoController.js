@@ -187,3 +187,45 @@ exports.delete = async (req, res) => {
     ));
   }
 };
+
+// 여러 건강정보 삭제
+exports.deleteMultiple = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    const userId = req.query.userId;
+    
+    // 입력값 검증
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json(errorResponse(
+        '삭제할 항목을 선택해주세요.',
+        400
+      ));
+    }
+
+    // userId가 있는 경우 해당 사용자의 데이터만 삭제
+    const query = userId ? { _id: { $in: ids }, userId } : { _id: { $in: ids } };
+    const deleteResult = await HealthInfo.deleteMany(query);
+
+    // 삭제된 항목이 없는 경우
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json(errorResponse(
+        '삭제할 데이터를 찾을 수 없습니다.',
+        404
+      ));
+    }
+
+    logger.info(`다중 건강정보 삭제: ${ids.join(', ')}`);
+    res.json(successResponse(
+      { deletedCount: deleteResult.deletedCount },
+      `${deleteResult.deletedCount}개의 건강정보가 성공적으로 삭제되었습니다.`
+    ));
+
+  } catch (error) {
+    logger.error('다중 건강정보 삭제 실패:', error);
+    res.status(500).json(errorResponse(
+      '건강정보 삭제에 실패했습니다.',
+      500,
+      error.message
+    ));
+  }
+};

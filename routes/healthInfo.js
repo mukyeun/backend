@@ -79,4 +79,42 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// 여러 건강정보 삭제
+router.post('/multiple-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    // 입력값 검증
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ 
+        message: '삭제할 항목을 선택해주세요.' 
+      });
+    }
+
+    // 여러 문서 삭제
+    const result = await HealthInfo.deleteMany({ 
+      _id: { $in: ids } 
+    });
+
+    // 삭제된 항목이 없는 경우
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ 
+        message: '삭제할 데이터를 찾을 수 없습니다.' 
+      });
+    }
+
+    res.json({ 
+      message: `${result.deletedCount}개의 건강정보가 삭제되었습니다.`,
+      deletedCount: result.deletedCount 
+    });
+
+  } catch (error) {
+    console.error('다중 삭제 오류:', error);
+    res.status(500).json({ 
+      error: '삭제 처리 중 오류가 발생했습니다.',
+      details: error.message 
+    });
+  }
+});
+
 module.exports = router;
